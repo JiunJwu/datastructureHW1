@@ -10,16 +10,16 @@ struct Costumerdata{
 	struct Costumerdata *next; 
 };
 
-void insertAtEnd(struct Costumerdata** head_ref, int new_id, int new_t, int new_no) {
+void insertAtEnd(struct Costumerdata** head_ref, int new_id, int new_t) {
   struct Costumerdata* new_node = (struct Costumerdata*)malloc(sizeof(struct Costumerdata));
-  struct Costumerdata* last = *head_ref[new_no]; 
+  struct Costumerdata* last = *head_ref; 
 
   new_node->id = new_id;
   new_node->time = new_t;
   new_node->next = NULL;
 
-  if (*head_ref[new_no]==NULL) {
-  *head_ref[new_no] = new_node;
+  if (*head_ref==NULL) {
+  *head_ref = new_node;
   return;
   }
 
@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
 		if(strcmp(action, enq) == 0){
 			scanf("%d",&tmpid);
 			scanf("%d",&tmpno);
-			insertAtEnd(&head, tmpid,costumlist[tmpno-1],tmpno-1);
+			insertAtEnd(&head[tmpno-1], tmpid,costumlist[tmpno-1]);
 			//sortLinkedList(&head);
 		}else if(strcmp(action, deq) == 0){
   			outputList(&head,costums);			
