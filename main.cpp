@@ -4,188 +4,162 @@
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
 
 // Insert at the end
-struct Costumerdata{
+struct CostumerData {
 	int id;
-	int time; //剩餘處理時間 
-	struct Costumerdata *next; 
+	int time; //剩餘處理時間
+	struct CostumerData *next;
 };
 
-void insertAtEnd(struct Costumerdata** head_ref, int new_id, int new_t) {
-  struct Costumerdata* new_node = (struct Costumerdata*)malloc(sizeof(struct Costumerdata));
-  struct Costumerdata* last = *head_ref; 
+void add_queue(struct CostumerData** head_ref, int gateWay, int new_id, int new_time) {
+	struct CostumerData* new_node = (struct CostumerData*)malloc(sizeof(struct CostumerData));
+	struct CostumerData* last = head_ref[gateWay];
 
-  new_node->id = new_id;
-  new_node->time = new_t;
-  new_node->next = NULL;
+	new_node->id = new_id;
+	new_node->time = new_time;
+	new_node->next = NULL;
 
-  if (*head_ref==NULL) {
-  *head_ref = new_node;
-  return;
-  }
+	if ( last == NULL) {
+		head_ref[gateWay] = new_node;
+		//printf("queue header [%d-%d]\n", head_ref[gateWay]->id,  head_ref[gateWay]->time);
+		return;
+	}
+	
+	//printf("queue last [%d-%d]\n", new_node->id,  new_node->time);
+	
+	while (last->next != NULL) last = last->next;
 
-  while (last->next != NULL) last = last->next;
-
-  last->next = new_node;
-  return;
+	last->next = new_node;
+	return;
 }
-
-// Sort the linked list
-void sortLinkedList(struct Costumerdata** head_ref) {
-  struct Costumerdata *current = *head_ref, *index = NULL;
-  int temp;
-
-  if (head_ref == NULL) {
-  return;
-  } else {
-  while (current != NULL) {
-    // index points to the node next to current
-    index = current->next;
-
-    while (index != NULL) {
-    if (current->time > index->time) {
-      temp = current->time;
-      current->time = index->time;
-      index->time = temp;
-      temp = current->id;
-      current->id = index->id;
-      index->id = temp;  
-    }
-    else if (current->time == index->time) {
-	    if (current->id > index->id) {
-	      temp = current->time;
-	      current->time = index->time;
-	      index->time = temp;
-	      temp = current->id;
-	      current->id = index->id;
-	      index->id = temp; 		   
-	    }
-    }
-    index = index->next;
-    }
-    current = current->next;
-  }
-  }
-  
-}
-
 
 // Delete nodes
-void deleteNode(struct Costumerdata* head_ref, int key) {
-  struct Costumerdata *temp = head_ref, *prev;
-  if (temp != NULL && temp->time == key) {
-	  head_ref = temp->next;
-	  free(temp);
-	  return;
-  }
-  // Find the key to be deleted
-  while (temp != NULL && temp->time != key) {
-  prev = temp;
-  temp = temp->next;
-  }
+CostumerData* popout_queue(struct CostumerData** head_ref, int costum_size) {
+	
+	bool isEmpty = true;
+	
+	//find min process time in first node of each queue
+	CostumerData *temp = NULL;
+	int min_proc_time = 999999;
+	
+	for( int i = 0 ;  i< costum_size; i ++ ){
+		temp = head_ref[i];
+		if(temp == NULL){
+			continue;
+		}
+		
+		min_proc_time = min_proc_time > temp->time ? temp->time:min_proc_time;
+	}
 
-  // If the key is not present
-  if (temp == NULL) return;
-
-  // Remove the node
-  prev->next = temp->next;
-
-  free(temp);
+	
+	CostumerData* result = NULL; 
+	CostumerData *last_node = NULL;
+	
+	for( int i = 0 ;  i< costum_size; i ++ ){
+		temp = head_ref[i];
+		if(temp == NULL){
+			continue;
+		}
+		if(temp->time == min_proc_time){
+			head_ref[i] = temp -> next;
+			
+			if(result == NULL){
+				result = temp;
+				result -> next = NULL;
+				last_node = result;
+			}else{
+				last_node = result;
+				while (last_node->next != NULL) last_node = last_node -> next;
+				last_node -> next = temp;
+				temp -> next = NULL;
+			}
+		}else{
+			temp -> time = temp -> time - min_proc_time;
+		}
+	}
+	return result;
 }
 
 
-void outputList(struct Costumerdata** head_ref ,int costums) {
-	struct Costumerdata *node = *head_ref;
-	int *outputlist = (int*)malloc(costums * sizeof(int));
-	int i,j,k;
-    int smallTime=head_ref[0]->time;
-    for(i=1;i<costums;i++){            //找到最小的出關時間
-	    if(head_ref[i]->id!=0){
-	    	if(smallTime>head_ref[i]->time){
-    			smallTime=head_ref[i]->time;
-			}
-		}
+void outputRest(struct CostumerData* node) {
+	while (node != NULL) {
+		printf("output:%d\n",node->id);
+		node = node->next;
 	}
-	k=0;
-	for(i=0;i<costums;i++){
-		if (node[i].id != 0) {
-			node[i].time=node->time-smallTime;
-		}
-		if(node[i].time <= 0){
-			outputlist[k]=node->id;
-			deleteNode(head_ref[i], 0);
-			k++;
-		}
-	}
-	int a;
-	for(i=0;i<k-1;i++){
-		for(j=i+1;j<k;j++){
-			if(outputlist[i] >= outputlist[j]){
-				a=outputlist[j];
-				outputlist[j]=outputlist[i];
-				outputlist[i]=a;
-			}
-		}
-	}
-	for(i=0;i<k;i++){
-		printf("output:%d\n",outputlist[i]);
-	}
-	free(outputlist);
-	free(node);
 }
 
-
-void outputRest(struct Costumerdata* node) {
-  while (node != NULL) {
-	printf("output:%d\n",node->id);
-  	node = node->next;
-  }
+bool isAllQueueEmpty(struct CostumerData** head_ref, int costum_size){
+	for( int i = 0 ;  i < costum_size; i ++ ){
+		if( head_ref[i] != NULL){
+			return false;
+		}
+	}
+	
+	return true;
 }
 
 int main(int argc, char** argv) {
-	int costums = 0 ; //海關數量 
-	printf("costums num:");
-	scanf("%d",&costums);
-	
+	int costum_size = 0 ; //海關數量
+	printf("costoms num:");
+	scanf("%d", &costum_size);
+
 	int i;
-	int *costumlist;
 	int tmpTime;
-	costumlist = (int*)malloc(costums * sizeof(int));
-	printf("costums times:");
-	for(i=0; i < costums; i++)
-	{
+	
+	int *costum_process_time_array = (int*)malloc(costum_size * sizeof(int));
+	printf("costoms comsume time:");
+	
+	for( i = 0 ; i < costum_size; i++) {
 		scanf("%d", &tmpTime);
-	    costumlist[i]=tmpTime;
+		costum_process_time_array[i] = tmpTime;
 	}
-	int commands=0;  //指令數量 
+	int commands=0;  //指令數量
 	printf("commands num:");
-	scanf("%d",&commands);
-	
-	char action[10];
-	const char *enq = "en";
-    const char *deq = "de";
-    
-    int j=0;
-    int k,q;
-    int tmpid,tmpno;
-    Costumerdata* head;   
-	head = (struct Costumerdata*)calloc(costums, sizeof(struct Costumerdata));    //每個海關口都是一個柱列 
-	
-	for(i=0;i<commands;i++){
-		printf("command%d input:",i);
-		scanf("%s",action);
-		if(strcmp(action, enq) == 0){
-			scanf("%d",&tmpid);
-			scanf("%d",&tmpno);
-			insertAtEnd(&head[tmpno-1], tmpid,costumlist[tmpno-1]);
-			//sortLinkedList(&head);
-		}else if(strcmp(action, deq) == 0){
-  			outputList(&head,costums);			
-		}
-		else{
-			printf("commands failed");
+	scanf("%d", &commands);
+
+	char action[32];
+	const char *enqueue = "enqueue";
+	const char *dequeue = "dequeue";
+
+	int j=0;
+	int k,q;
+	int customer_id, custom_no;
+	//CostumerData *head = (struct CostumerData*) calloc(costum_size, sizeof(struct CostumerData*));    //每個海關口都是一個柱列
+	CostumerData *head[costum_size] = {};
+	CostumerData *result = NULL, *last_node = NULL;
+	for( i = 0; i < commands; i++) {
+		
+		printf("command%d input:", i);
+		scanf("%s", action);
+		
+		if(strcmp(action, enqueue) == 0) {
+			scanf("%d", &customer_id);
+			scanf("%d", &custom_no);
+			add_queue(head, custom_no-1 , customer_id, costum_process_time_array[custom_no-1]);
+		} else if(strcmp(action, dequeue) == 0) {
+		   CostumerData* tempResult = popout_queue(head, costum_size);
+		   if(result == NULL)
+		   		result = tempResult;
+		   	else{
+		   		last_node = result;
+		   		while (last_node->next != NULL) last_node = last_node->next;
+		   		last_node -> next = tempResult; 
+			}
 		}
 	}
-	outputRest(head);
+	
+	while(!isAllQueueEmpty(head, costum_size)){
+		 CostumerData* tempResult = popout_queue(head, costum_size);
+		   if(result == NULL)
+		   		result = tempResult;
+		   	else{
+		   		last_node = result;
+		   		while (last_node->next != NULL) last_node = last_node->next;
+		   		last_node -> next = tempResult; 
+			}
+	}
+	
+	outputRest(result);
+	free(result);
 	system("pause");
 	return 0;
 }
