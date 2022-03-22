@@ -10,30 +10,26 @@ struct CostumerData {
 	struct CostumerData *next;
 };
 
-void add_queue(struct CostumerData** head_ref, int gateWay, int new_id, int new_time) {
+void add_queue(struct CostumerData** head_ref, struct CostumerData** tail_ref, int gateWay, int new_id, int new_time) {
 	struct CostumerData* new_node = (struct CostumerData*)malloc(sizeof(struct CostumerData));
-	struct CostumerData* last = head_ref[gateWay];
 
 	new_node->id = new_id;
 	new_node->time = new_time;
 	new_node->next = NULL;
 
-	if ( last == NULL) {
+	if ( head_ref[gateWay] == NULL) {
 		head_ref[gateWay] = new_node;
 		//printf("queue header [%d-%d]\n", head_ref[gateWay]->id,  head_ref[gateWay]->time);
-		return;
+	}else{
+		tail_ref[gateWay]->next = new_node;
 	}
 	
-	//printf("queue last [%d-%d]\n", new_node->id,  new_node->time);
-	
-	while (last->next != NULL) last = last->next;
-
-	last->next = new_node;
+	tail_ref[gateWay] = new_node;
 	return;
 }
 
 // Delete nodes
-CostumerData* popout_queue(struct CostumerData** head_ref, int costum_size) {
+CostumerData* popout_queue(struct CostumerData** head_ref, struct CostumerData** tail_ref, int costum_size) {
 	
 	bool isEmpty = true;
 	
@@ -61,7 +57,9 @@ CostumerData* popout_queue(struct CostumerData** head_ref, int costum_size) {
 		}
 		if(temp->time == min_proc_time){
 			head_ref[i] = temp -> next;
-			
+			if(head_ref[i]==NULL){
+				tail_ref[i]=NULL;
+			}
 			if(result == NULL){
 				result = temp;
 				result -> next = NULL;
@@ -125,6 +123,7 @@ int main(int argc, char** argv) {
 	int customer_id, custom_no;
 	//CostumerData *head = (struct CostumerData*) calloc(costum_size, sizeof(struct CostumerData*));    //每個海關口都是一個柱列
 	CostumerData *head[costum_size] = {};
+	CostumerData *tail[costum_size] = {};
 	CostumerData *result = NULL, *last_node = NULL;
 	for( i = 0; i < commands; i++) {
 		
@@ -134,9 +133,9 @@ int main(int argc, char** argv) {
 		if(strcmp(action, enqueue) == 0) {
 			scanf("%d", &customer_id);
 			scanf("%d", &custom_no);
-			add_queue(head, custom_no-1 , customer_id, costum_process_time_array[custom_no-1]);
+			add_queue(head, tail, custom_no-1 , customer_id, costum_process_time_array[custom_no-1]);
 		} else if(strcmp(action, dequeue) == 0) {
-		   CostumerData* tempResult = popout_queue(head, costum_size);
+		   CostumerData* tempResult = popout_queue(head, tail, costum_size);
 		   if(result == NULL)
 		   		result = tempResult;
 		   	else{
@@ -148,7 +147,7 @@ int main(int argc, char** argv) {
 	}
 	
 	while(!isAllQueueEmpty(head, costum_size)){
-		 CostumerData* tempResult = popout_queue(head, costum_size);
+		 CostumerData* tempResult = popout_queue(head, tail, costum_size);
 		   if(result == NULL)
 		   		result = tempResult;
 		   	else{
